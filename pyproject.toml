@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "avocodo"
+version = "0.1.0"
+description = ""
+authors = ["ljun4121 <ljun4121@ncsoft.com>", "happyjun <happyjun@ncsoft.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+omegaconf = "^2.2.2"
+pytorch-lightning = "^1.6.4"
+librosa = "^0.9.2"
+rich = "^12.4.4"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

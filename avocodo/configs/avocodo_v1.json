@@ -1,0 +1,126 @@
+{
+    "seed": 1234,
+
+    "data_dir": "LJSpeech-1.1/wavs",
+    "data": {
+        "segment_size": 8192,
+        "num_mels": 80,
+        "num_freq": 1025,
+        "sampling_rate": 22050,
+        "n_fft": 1024,
+        "hop_size": 256,
+        "win_size": 1024,
+        "fmin": 0,
+        "fmax": 8000,
+        "fmax_for_loss": null,
+        "batch_size": 16,
+        "num_workers": 4,
+
+        "fine_tuning": "${from_args: 'fine_tuning'}",
+
+        "input_wavs_dir": "${from_args: 'input_wavs_dir'}",
+        "input_mels_dir": "${from_args: 'input_mels_dir'}",
+        "input_training_file": "${from_args: 'input_training_file'}",
+        "input_validation_file": "${from_args: 'input_validation_file'}"
+    },
+    "model": {
+        "train": {
+            "training_epochs": "${from_args: 'training_epochs'}",
+            "stdout_interval": "${from_args: 'stdout_interval'}",
+            "checkpoint_interval": "${from_args: 'checkpoint_interval'}",
+            "summary_interval": "${from_args: 'summary_interval'}",
+            "validation_interval": "${from_args: 'validation_interval'}"
+        },
+        "audio": "${data}",
+        "optimizer": {
+            "learning_rate": 0.0002,
+            "adam_b1": 0.8,
+            "adam_b2": 0.99,
+            "lr_decay": 0.999
+        },
+        "generator": {
+            "resblock": "1",
+            "upsample_rates": [[8], [8], [2], [2]],
+            "upsample_kernel_sizes": [[16], [16], [4], [4]],
+            "upsample_initial_channel": 512,
+            "resblock_kernel_sizes": [3,7,11],
+            "resblock_dilation_sizes": [[1,3,5], [1,3,5], [1,3,5]],
+            "projection_filters": [0, 1, 1, 1],
+            "projection_kernels": [0, 5, 7, 11]
+        },
+
+        "loss_scale_mel": 45,
+
+        "use_msd": false,
+        "use_mpd": false,
+        "use_combd": true,
+
+        "combd": {
+            "combd_h_u" : [
+                [16, 64, 256, 1024, 1024, 1024],
+                [16, 64, 256, 1024, 1024, 1024],
+                [16, 64, 256, 1024, 1024, 1024]
+            ],
+            "combd_d_k" : [
+                [7, 11, 11, 11, 11, 5],
+                [11, 21, 21, 21, 21, 5],
+                [15, 41, 41, 41, 41, 5]
+            ],
+            "combd_d_s" : [
+                [1, 1, 4, 4, 4, 1],
+                [1, 1, 4, 4, 4, 1],
+                [1, 1, 4, 4, 4, 1]
+            ],
+            "combd_d_d" : [
+                [1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1]
+            ],
+            "combd_d_g" : [
+                [1, 4, 16, 64, 256, 1],
+                [1, 4, 16, 64, 256, 1],
+                [1, 4, 16, 64, 256, 1]
+            ],
+            "combd_d_p" : [
+                [3, 5, 5, 5, 5, 2],
+                [5, 10, 10, 10, 10, 2],
+                [7, 20, 20, 20, 20, 2]
+            ],
+
+            "combd_op_f" : [1, 1, 1],
+            "combd_op_k" : [3, 3, 3],
+            "combd_op_g" : [1, 1, 1]
+        },
+
+        "sbd": {
+            "use_sbd": true,
+            "sbd_filters": [[64, 128, 256, 256, 256],[64, 128, 256, 256, 256],[64, 128, 256, 256, 256],[32, 64, 128, 128, 128]],
+            "sbd_strides": [[1, 1, 3, 3, 1], [1, 1, 3, 3, 1], [1, 1, 3, 3, 1], [1, 1, 3, 3, 1]],
+            "sbd_kernel_sizes": [
+                [[7, 7, 7],[7, 7, 7],[7, 7, 7],[7, 7, 7],[7, 7, 7]],
+                [[5, 5, 5],[5, 5, 5],[5, 5, 5],[5, 5, 5],[5, 5, 5]],
+                [[3, 3, 3],[3, 3, 3],[3, 3, 3],[3, 3, 3],[3, 3, 3]],
+                [[5, 5, 5],[5, 5, 5],[5, 5, 5],[5, 5, 5],[5, 5, 5]]
+            ],
+            "sbd_dilations": [
+                [[5, 7, 11], [5, 7, 11], [5, 7, 11], [5, 7, 11], [5, 7, 11]],
+                [[3, 5, 7], [3, 5, 7], [3, 5, 7], [3, 5, 7], [3, 5, 7]],
+                [[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]],
+                [[1, 2, 3], [1, 2, 3], [1, 2, 3], [2, 3, 5], [2, 3, 5]]
+            ],
+            "sbd_band_ranges": [[0, 6], [0, 11], [0, 16], [0, 64]],
+            "sbd_transpose": [false, false, false, true],
+            "pqmf_config": {
+                "sbd": [16, 256, 0.03, 10.0],
+                "fsbd": [64, 256, 0.1, 9.0]
+            },
+            "segment_size": "${data.segment_size}"
+        },
+        "pqmf_config": {
+            "lv1": [2, 256, 0.25, 10.0],
+            "lv2": [4, 192, 0.13, 10.0]
+        }
+    }
+
+
+}

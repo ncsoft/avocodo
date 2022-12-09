@@ -1,0 +1,11 @@
+poetry.lock
+.python-version
+# cache
+*.pyc
+__pycache__
+
+
+LJSpeech-1.1
+
+logs
+generated_files
