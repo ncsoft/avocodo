@@ -26,10 +26,6 @@
     "model": {
         "train": {
             "training_epochs": "${from_args: 'training_epochs'}",
-            "stdout_interval": "${from_args: 'stdout_interval'}",
-            "checkpoint_interval": "${from_args: 'checkpoint_interval'}",
-            "summary_interval": "${from_args: 'summary_interval'}",
-            "validation_interval": "${from_args: 'validation_interval'}"
         },
         "audio": "${data}",
         "optimizer": {

@@ -29,13 +29,8 @@ if __name__ == "__main__":
     parser.add_argument('--input_validation_file',
                         default='LJSpeech-1.1/validation.txt')
     parser.add_argument('--config', default='avocodo/configs/avocodo_v1.json')
-    parser.add_argument('--training_epochs', default=3100000, type=int)
-    parser.add_argument('--stdout_interval', default=10000, type=int)
-    parser.add_argument('--checkpoint_interval', default=50000, type=int)
-    parser.add_argument('--summary_interval', default=10000, type=int)
-    parser.add_argument('--validation_interval', default=10000, type=int)
+    parser.add_argument('--training_epochs', default=5000, type=int)
     parser.add_argument('--fine_tuning', default=False, type=bool)
-    parser.add_argument('--debug', default=False, type=bool)
 
     a = parser.parse_args()
     OmegaConf.register_new_resolver(
@@ -50,16 +45,10 @@ if __name__ == "__main__":
     dm = AvocodoData(conf.data)
     model = Avocodo(conf.model)
 
-    if a.debug:
-        limit_train_batches = 0.02
-        limit_val_batches = 0.05
-        log_every_n_steps = 2
-        max_epochs = 5
-    else:
-        limit_train_batches = 1.0
-        limit_val_batches = 1.0
-        log_every_n_steps = 50
-        max_epochs = 5
+    limit_train_batches = 1.0
+    limit_val_batches = 1.0
+    log_every_n_steps = 50
+    max_epochs = conf.model.train.training_epochs
 
     trainer = Trainer(
         gpus=1,

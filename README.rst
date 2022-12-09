@@ -37,8 +37,13 @@ Pre-requisites
     pip install poetry
 
     poetry install
-4. Download and extract the `LJ Speech dataset <https://keithito.com/LJ-Speech-Dataset>`_. And move all wav files to LJSpeech-1.1/wavs
+4. Download and extract the `LJ Speech dataset <https://keithito.com/LJ-Speech-Dataset>`_.
+  - Move all wav files to LJSpeech-1.1/wavs
+  - Split dataset into a trainset and a validationset.
+  .. code-block::
 
+    cat LJSpeech-1.1/metadata.csv | tail -n 13000 > training.txt
+    cat LJSpeech-1.1/metadata.csv | head -n 100 > validation.txt
 
 Training
 ===============
