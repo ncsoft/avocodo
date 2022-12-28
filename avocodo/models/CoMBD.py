@@ -65,16 +65,16 @@ class CoMBDBlock(torch.nn.Module):
 
 
 class CoMBD(torch.nn.Module):
-    def __init__(self, h, pqmf_list=None, use_spectral_norm=False):
+    def __init__(self, h, pqmf_list: List=None, use_spectral_norm=False):
         super(CoMBD, self).__init__()
         self.h = h
         if pqmf_list is not None:
-            self.pqmf = pqmf_list
+            self.pqmf = nn.ModuleList(pqmf_list)
         else:
-            self.pqmf = [
+            self.pqmf = nn.ModuleList([
                 PQMF(*h.pqmf_config["lv2"]),
                 PQMF(*h.pqmf_config["lv1"])
-            ]
+            ])
 
         self.blocks = nn.ModuleList()
         for _h_u, _d_k, _d_s, _d_d, _d_g, _d_p, _op_f, _op_k, _op_g in zip(
@@ -107,18 +107,18 @@ class CoMBD(torch.nn.Module):
             f_maps.append(f_map)
         return outs, f_maps
 
-    def _pqmf_forward(self, ys, ys_hat):
+    def _pqmf_forward(self, y, ys_hat):
         # preprocess for multi_scale forward
-        multi_scale_inputs = []
+        ys = []
         multi_scale_inputs_hat = []
         for pqmf in self.pqmf:
-            multi_scale_inputs.append(
-                pqmf.to(ys[-1]).analysis(ys[-1])[:, :1, :]
+            ys.append(
+                pqmf.analysis(y)[:, :1, :]
             )
             multi_scale_inputs_hat.append(
-                pqmf.to(ys[-1]).analysis(ys_hat[-1])[:, :1, :]
+                pqmf.analysis(ys_hat[-1])[:, :1, :]
             )
-
+        ys.append(y)
         outs_real = []
         f_maps_real = []
         # real
@@ -126,8 +126,8 @@ class CoMBD(torch.nn.Module):
         outs_real, f_maps_real = self._block_forward(
             ys, self.blocks, outs_real, f_maps_real)
         # for multi_scale forward
-        outs_real, f_maps_real = self._block_forward(
-            multi_scale_inputs, self.blocks[:-1], outs_real, f_maps_real)
+        outs_real.extend(outs_real[:-1])
+        f_maps_real.extend(f_maps_real[:-1])
 
         outs_fake = []
         f_maps_fake = []
@@ -141,7 +141,7 @@ class CoMBD(torch.nn.Module):
 
         return outs_real, outs_fake, f_maps_real, f_maps_fake
 
-    def forward(self, ys, ys_hat):
+    def forward(self, y, ys_hat):
         outs_real, outs_fake, f_maps_real, f_maps_fake = self._pqmf_forward(
-            ys, ys_hat)
+            y, ys_hat)
         return outs_real, outs_fake, f_maps_real, f_maps_fake

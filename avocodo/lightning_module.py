@@ -11,7 +11,6 @@ from avocodo.models.SBD import SBD
 from avocodo.models.losses import feature_loss
 from avocodo.models.losses import generator_loss
 from avocodo.models.losses import discriminator_loss
-from avocodo.pqmf import PQMF
 
 
 class Avocodo(LightningModule):
@@ -22,11 +21,8 @@ class Avocodo(LightningModule):
         super().__init__()
         self.save_hyperparameters(h)
 
-        self.pqmf_lv2 = PQMF(*self.hparams.pqmf_config["lv2"])
-        self.pqmf_lv1 = PQMF(*self.hparams.pqmf_config["lv1"])
-
         self.generator = Generator(self.hparams.generator)
-        self.combd = CoMBD(self.hparams.combd, [self.pqmf_lv2, self.pqmf_lv1])
+        self.combd = CoMBD(self.hparams.combd)
         self.sbd = SBD(self.hparams.sbd)
 
     def configure_optimizers(self):
@@ -43,22 +39,12 @@ class Avocodo(LightningModule):
     def training_step(self, batch, batch_idx, optimizer_idx):
         x, y, _, y_mel = batch
         y = y.unsqueeze(1)
-        ys = [
-            self.pqmf_lv2.analysis(
-                y
-            )[:, :self.hparams.generator.projection_filters[1]],
-            self.pqmf_lv1.analysis(
-                y
-            )[:, :self.hparams.generator.projection_filters[2]],
-            y
-        ]
-
         y_g_hats = self.generator(x)
 
         # train generator
         if optimizer_idx == 0:
             y_du_hat_r, y_du_hat_g, fmap_u_r, fmap_u_g = self.combd(
-                ys, y_g_hats)
+                y, y_g_hats)
             loss_fm_u, losses_fm_u = feature_loss(fmap_u_r, fmap_u_g)
             loss_gen_u, losses_gen_u = generator_loss(y_du_hat_g)
 
@@ -91,7 +77,7 @@ class Avocodo(LightningModule):
             detached_y_g_hats = [x.detach() for x in y_g_hats]
 
             y_du_hat_r, y_du_hat_g, _, _ = self.combd(
-                ys, detached_y_g_hats)
+                y, detached_y_g_hats)
             loss_disc_u, losses_disc_u_r, losses_disc_u_g = discriminator_loss(
                 y_du_hat_r, y_du_hat_g)
 
