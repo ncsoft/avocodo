@@ -31,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('--config', default='avocodo/configs/avocodo_v1.json')
     parser.add_argument('--training_epochs', default=5000, type=int)
     parser.add_argument('--fine_tuning', default=False, type=bool)
+    parser.add_argument('--resume_checkpoint_path', default=None, type=str, help="Path to the checkpoint to resume training/finetune on")
 
     a = parser.parse_args()
     OmegaConf.register_new_resolver(
@@ -44,6 +45,8 @@ if __name__ == "__main__":
 
     dm = AvocodoData(conf.data)
     model = Avocodo(conf.model)
+    if a.resume_checkpoint_path is not None:
+        model.load_from_checkpoint(a.resume_checkpoint_path)
 
     limit_train_batches = 1.0
     limit_val_batches = 1.0
